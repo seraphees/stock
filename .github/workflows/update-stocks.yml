@@ -1,0 +1,42 @@
+name: Update Stock Prices
+
+on:
+  schedule:
+    - cron: '*/60 * * * *'  # 每5分钟运行一次
+  workflow_dispatch:        # 允许手动触发
+  push:                    # 推送代码时也触发一次，用于测试
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'     # 缓存 pip 依赖
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        
+      - name: Run updater
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          DATABASE_ID: ${{ secrets.DATABASE_ID }}
+        run: python stock_updater.py
+        
+      - name: Upload logs
+        if: always()       # 无论成功失败都上传日志
+        uses: actions/upload-artifact@v3
+        with:
+          name: run-logs
+          path: |
+            *.log
+            *.txt
+          retention-days: 7
