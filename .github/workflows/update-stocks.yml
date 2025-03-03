@@ -2,7 +2,7 @@ name: Update Stock Prices
 
 on:
   schedule:
-    - cron: '*/60 * * * *'  # 每60分钟运行一次
+    - cron: '*/15 * * * *'  # 每X分钟运行一次
   workflow_dispatch:        # 允许手动触发
   push:                    # 推送代码时也触发一次，用于测试
 
