@@ -2,7 +2,7 @@ name: Update Stock Prices
 
 on:
   schedule:
-    - cron: '*/60 * * * *'  # 每5分钟运行一次
+    - cron: '*/60 * * * *'  # 每60分钟运行一次
   workflow_dispatch:        # 允许手动触发
   push:                    # 推送代码时也触发一次，用于测试
 
@@ -12,10 +12,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
           cache: 'pip'     # 缓存 pip 依赖
