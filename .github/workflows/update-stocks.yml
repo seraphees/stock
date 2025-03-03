@@ -33,7 +33,7 @@ jobs:
         
       - name: Upload logs
         if: always()       # 无论成功失败都上传日志
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: run-logs
           path: |
