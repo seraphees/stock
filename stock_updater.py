@@ -4,6 +4,7 @@ import time
 import yfinance as yf
 from notion_client import Client
 from dotenv import load_dotenv
+import pytz
 
 load_dotenv()
 
@@ -37,7 +38,7 @@ def update_stock_price(page):
                 page_id=page["id"],
                 properties={
                     "最新股价": {"number": price},
-                    "更新时间": {"date": {"start": datetime.now().isoformat()}}
+                    "更新时间": {"date": {"start": datetime.now(pytz.timezone('Asia/Shanghai')).isoformat()}}
                 }
             )
             print(f"已更新股价: {price}")
