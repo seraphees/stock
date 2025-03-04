@@ -13,18 +13,25 @@ notion = Client(auth=os.getenv("NOTION_TOKEN"))
 DATABASE_ID = os.getenv("DATABASE_ID")
 
 def get_stock_price(symbol):
-    """获取股票最新价格"""
+    """获取股票最新价格和涨幅"""
     try:
-        price = yf.Ticker(symbol).info.get('regularMarketPrice')
-        if not price:
+        stock = yf.Ticker(symbol)
+        price = stock.info.get('regularMarketPrice')
+        # 获取涨幅（当日涨幅百分比）
+        change_percent = stock.info.get('regularMarketChangePercent')
+        # 将涨幅百分比转换为小数并保留两位小数
+        if change_percent is not None:
+            change_percent = round(change_percent/100, 4)
+        
+        if price is None:
             print(f"无法获取 {symbol} 的价格数据")
-        return price
+        return price, change_percent
     except Exception as e:
         print(f"获取股票价格出错: {e}")
-        return None
+        return None, None
 
 def update_stock_price(page):
-    """更新单个股票价格"""
+    """更新单个股票价格和涨幅"""
     try:
         # 获取公司信息
         company = page["properties"]["Name"]["title"][0]["plain_text"]
@@ -32,16 +39,19 @@ def update_stock_price(page):
         
         print(f"\n处理: {company}({stock_symbol})")
         
-        # 获取并更新股价
-        if price := get_stock_price(stock_symbol):
+        # 获取并更新股价和涨幅
+        price, change_percent = get_stock_price(stock_symbol)
+        
+        if price is not None:
             notion.pages.update(
                 page_id=page["id"],
                 properties={
                     "最新股价": {"number": price},
+                    "今日涨": {"number": change_percent},  # 更新涨幅字段
                     "更新时间": {"date": {"start": datetime.now(pytz.timezone('Asia/Shanghai')).isoformat()}}
                 }
             )
-            print(f"已更新股价: {price}")
+            print(f"已更新股价: {price}，涨幅: {change_percent}%")
             return True
     except Exception as e:
         print(f"更新失败: {e}")
