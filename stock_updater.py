@@ -13,25 +13,30 @@ notion = Client(auth=os.getenv("NOTION_TOKEN"))
 DATABASE_ID = os.getenv("DATABASE_ID")
 
 def get_stock_price(symbol):
-    """获取股票最新价格和涨幅"""
+    """获取股票最新价格、涨幅和TTM PE"""
     try:
         stock = yf.Ticker(symbol)
         price = stock.info.get('regularMarketPrice')
         # 获取涨幅（当日涨幅百分比）
         change_percent = stock.info.get('regularMarketChangePercent')
+        # 获取TTM PE
+        pe_ratio = stock.info.get('trailingPE')  # 使用 forwardPE 或 trailingPE，根据需要选择
+        if pe_ratio is not None:
+            pe_ratio = round(pe_ratio, 2)
+        
         # 将涨幅百分比转换为小数并保留两位小数
         if change_percent is not None:
-            change_percent = round(change_percent/100, 4)
+            change_percent = round(change_percent / 100, 4)
         
         if price is None:
             print(f"无法获取 {symbol} 的价格数据")
-        return price, change_percent
+        return price, change_percent, pe_ratio
     except Exception as e:
         print(f"获取股票价格出错: {e}")
-        return None, None
+        return None, None, None
 
 def update_stock_price(page):
-    """更新单个股票价格和涨幅"""
+    """更新单个股票价格、涨幅和PE"""
     try:
         # 获取公司信息
         company = page["properties"]["Name"]["title"][0]["plain_text"]
@@ -39,8 +44,8 @@ def update_stock_price(page):
         
         print(f"\n处理: {company}({stock_symbol})")
         
-        # 获取并更新股价和涨幅
-        price, change_percent = get_stock_price(stock_symbol)
+        # 获取并更新股价、涨幅和PE
+        price, change_percent, pe_ratio = get_stock_price(stock_symbol)
         
         if price is not None:
             notion.pages.update(
@@ -48,10 +53,11 @@ def update_stock_price(page):
                 properties={
                     "最新股价": {"number": price},
                     "今日涨": {"number": change_percent},  # 更新涨幅字段
+                    "TTM PE": {"number": pe_ratio},  # 更新PE字段
                     "更新时间": {"date": {"start": datetime.now(pytz.timezone('Asia/Shanghai')).isoformat()}}
                 }
             )
-            print(f"已更新股价: {price}，涨幅: {change_percent}%")
+            print(f"已更新股价: {price}，涨幅: {change_percent}%，PE: {pe_ratio}")
             return True
     except Exception as e:
         print(f"更新失败: {e}")
