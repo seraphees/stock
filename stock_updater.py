@@ -16,6 +16,7 @@ def get_stock_price(symbol):
     """获取股票最新价格、涨幅和TTM PE"""
     try:
         stock = yf.Ticker(symbol)
+
         price = stock.info.get('regularMarketPrice')
         # 获取涨幅（当日涨幅百分比）
         change_percent = stock.info.get('regularMarketChangePercent')
