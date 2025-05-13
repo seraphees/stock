@@ -3,6 +3,7 @@ name: Update Stock Prices
 on:
   schedule:
     - cron: '0 10 * * *'  # 北京时间每天晚上18点（-8小时为UTC时间）运行一次
+    - cron: '0 22 * * *'  # UTC 22:00 → 北京时间 06:00
 
   workflow_dispatch:        # 允许手动触发
   push:                    # 推送代码时也触发一次，用于测试
